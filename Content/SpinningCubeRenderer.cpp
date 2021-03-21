@@ -2,6 +2,8 @@
 #include "SpinningCubeRenderer.h"
 #include "Common/DirectXHelper.h"
 
+#include <sstream>
+
 using namespace holo_winrt;
 using namespace DirectX;
 using namespace winrt::Windows::Foundation::Numerics;
@@ -16,12 +18,12 @@ SpinningCubeRenderer::SpinningCubeRenderer(std::shared_ptr<DX::DeviceResources> 
 
 // This function uses a SpatialPointerPose to position the world-locked hologram
 // two meters in front of the user's heading.
-void SpinningCubeRenderer::PositionHologram(SpatialPointerPose const& pointerPose)
+void SpinningCubeRenderer::PositionHologram(SpatialPointerPose const& pointerPose, const float& offset)
 {
     if (pointerPose != nullptr)
     {
         // Get the gaze direction relative to the given coordinate system.
-        const float3 headPosition = pointerPose.Head().Position();
+        const float3 headPosition = pointerPose.Head().Position() + float3(offset, 0.f,0.f);
         const float3 headDirection = pointerPose.Head().ForwardDirection();
 
         // The hologram is positioned two meters along the user's gaze direction.
@@ -38,12 +40,42 @@ void SpinningCubeRenderer::PositionHologram(SpatialPointerPose const& pointerPos
 // relative to the position transform indicated by hologramPositionTransform.
 void SpinningCubeRenderer::Update(DX::StepTimer const& timer)
 {
+    // Time from last update
+    const float& dtime = static_cast<float>(timer.GetElapsedSeconds());
+
+    m_position = lerp(m_position, m_targetPosition, dtime * m_lerpRate);
+
+    std::wstringstream s;
+    s << "SpinningCubeRenderer::Update: POS: " << m_position.x << m_position.y << m_position.z << '\ n';
+    std::wstring ws = s.str(); 
+
+    OutputDebugString(ws.c_str());
+
+
     // Rotate the cube.
     // Convert degrees to radians, then convert seconds to rotation angle.
-    const float    radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
+    /*const float    radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
     const double   totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
     const float    radians = static_cast<float>(fmod(totalRotation, XM_2PI));
-    const XMMATRIX modelRotation = XMMatrixRotationY(-radians);
+    const XMMATRIX modelRotation = XMMatrixRotationY(-radians);*/
+
+    const XMMATRIX modelRotation = XMMatrixRotationY(-0.f);
+
+    XMVECTOR facingNormal = XMVector3Normalize(-XMLoadFloat3(&m_position));
+
+    // 90 degree angle from the normal, in the xz plane
+    // X-axis rotation
+    XMVECTOR xAxisRotation = XMVector3Normalize(XMVectorSet(XMVectorGetZ(facingNormal), 0.f, -XMVectorGetX(facingNormal), 0.f));
+
+    XMVECTOR yAxisRotation = XMVector3Normalize(XMVector3Cross(facingNormal, xAxisRotation));
+
+    // 4x4 Matrix
+    XMMATRIX rotationMatrix = XMMATRIX(
+        xAxisRotation,
+        yAxisRotation,
+        facingNormal,
+        XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f)
+    );
 
     // Position the cube.
     const XMMATRIX modelTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&m_position));
@@ -51,7 +83,8 @@ void SpinningCubeRenderer::Update(DX::StepTimer const& timer)
     // Multiply to get the transform matrix.
     // Note that this transform does not enforce a particular coordinate system. The calling
     // class is responsible for rendering this content in a consistent manner.
-    const XMMATRIX modelTransform = XMMatrixMultiply(modelRotation, modelTranslation);
+    rotationMatrix = modelRotation * rotationMatrix;
+    const XMMATRIX modelTransform = XMMatrixMultiply(rotationMatrix, modelTranslation);
 
     // The view and projection matrices are provided by the system; they are associated
     // with holographic cameras, and updated on a per-camera basis.

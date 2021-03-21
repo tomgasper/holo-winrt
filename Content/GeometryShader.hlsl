@@ -12,7 +12,7 @@ struct GeometryShaderInput
 //    float4 face_colors[6];
 //}
 
-// Per-vertex data passed to the rasterizer.
+//   Per-vertex data passed to the rasterizer.
 struct GeometryShaderOutput
 {
     float4 pos     : SV_POSITION;

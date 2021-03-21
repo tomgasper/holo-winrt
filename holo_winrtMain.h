@@ -82,6 +82,7 @@ namespace holo_winrt
         // Renders a colorful holographic cube that's 20 centimeters wide. This sample content
         // is used to demonstrate world-locked rendering.
         std::unique_ptr<SpinningCubeRenderer>                       m_spinningCubeRenderer;
+        std::unique_ptr<SpinningCubeRenderer>                       m_spinningCubeRenderer2;
 
         // Listens for the Pressed spatial input event.
         std::shared_ptr<SpatialInputHandler>                        m_spatialInputHandler;

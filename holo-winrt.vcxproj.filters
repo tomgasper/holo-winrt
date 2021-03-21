@@ -93,6 +93,8 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <None Include="packages.config" />
+    <None Include="PropertySheet.props" />
+    <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

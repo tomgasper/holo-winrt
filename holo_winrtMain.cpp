@@ -61,6 +61,7 @@ void holo_winrtMain::SetHolographicSpace(HolographicSpace const& holographicSpac
 #ifdef DRAW_SAMPLE_CONTENT
     // Initialize the sample hologram.
     m_spinningCubeRenderer = std::make_unique<SpinningCubeRenderer>(m_deviceResources);
+    m_spinningCubeRenderer2 = std::make_unique<SpinningCubeRenderer>(m_deviceResources);
     m_spatialInputHandler = std::make_unique<SpatialInputHandler>();
 #endif
 
@@ -200,7 +201,8 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
 
         // When a Pressed gesture is detected, the sample hologram will be repositioned
         // two meters in front of the user.
-        m_spinningCubeRenderer->PositionHologram(pose);
+        m_spinningCubeRenderer->PositionHologram(pose, 0.f);
+        m_spinningCubeRenderer2->PositionHologram(pose, 1.f);
     }
 #endif
 
@@ -216,6 +218,7 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
 
 #ifdef DRAW_SAMPLE_CONTENT
         m_spinningCubeRenderer->Update(m_timer);
+        m_spinningCubeRenderer2->Update(m_timer);
 #endif
     });
 
@@ -342,6 +345,7 @@ bool holo_winrtMain::Render(HolographicFrame const& holographicFrame)
             {
                 // Draw the sample hologram.
                 m_spinningCubeRenderer->Render();
+                m_spinningCubeRenderer2->Render();
                 if (m_canCommitDirect3D11DepthBuffer)
                 {
                     // On versions of the platform that support the CommitDirect3D11DepthBuffer API, we can 
@@ -396,6 +400,7 @@ void holo_winrtMain::OnDeviceLost()
 {
 #ifdef DRAW_SAMPLE_CONTENT
     m_spinningCubeRenderer->ReleaseDeviceDependentResources();
+    m_spinningCubeRenderer2->ReleaseDeviceDependentResources();
 #endif
 }
 
@@ -405,6 +410,7 @@ void holo_winrtMain::OnDeviceRestored()
 {
 #ifdef DRAW_SAMPLE_CONTENT
     m_spinningCubeRenderer->CreateDeviceDependentResources();
+    m_spinningCubeRenderer2->CreateDeviceDependentResources();
 #endif
 }
 

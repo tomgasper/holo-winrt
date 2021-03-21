@@ -17,10 +17,10 @@ namespace holo_winrt
         void Render();
 
         // Repositions the sample hologram.
-        void PositionHologram(winrt::Windows::UI::Input::Spatial::SpatialPointerPose const& pointerPose);
+        void PositionHologram(winrt::Windows::UI::Input::Spatial::SpatialPointerPose const& pointerPose, const float& offset);
 
         // Property accessors.
-        void SetPosition(winrt::Windows::Foundation::Numerics::float3 const& pos)   { m_position = pos;  }
+        void SetPosition(winrt::Windows::Foundation::Numerics::float3 const& pos)   { m_targetPosition = pos;  }
         winrt::Windows::Foundation::Numerics::float3 const& GetPosition()           { return m_position; }
 
     private:
@@ -44,6 +44,8 @@ namespace holo_winrt
         // Variables used with the rendering loop.
         bool                                            m_loadingComplete = false;
         float                                           m_degreesPerSecond = 45.f;
+        float                                           m_lerpRate = 3.0f;
+        winrt::Windows::Foundation::Numerics::float3    m_targetPosition = { 0.f, 0.f, -2.f };
         winrt::Windows::Foundation::Numerics::float3    m_position = { 0.f, 0.f, -2.f };
 
         // If the current D3D Device supports VPRT, we can avoid using a geometry

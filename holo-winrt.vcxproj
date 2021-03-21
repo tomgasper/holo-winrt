@@ -359,6 +359,7 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include=".gitignore" />
     <None Include="holo-winrt_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
