@@ -16,6 +16,7 @@
 #ifdef DRAW_SAMPLE_CONTENT
 #include "Content/SpinningCubeRenderer.h"
 #include "Content/SpatialInputHandler.h"
+#include "Content/HandMeshRenderer.h"
 #endif
 
 // Updates, renders, and presents holographic content using Direct3D.
@@ -47,6 +48,9 @@ namespace holo_winrt
         // IDeviceNotify
         void OnDeviceLost() override;
         void OnDeviceRestored() override;
+
+        // Return current stationary frame of reference coordinate system
+        winrt::Windows::Perception::Spatial::SpatialStationaryFrameOfReference GetStationaryReferenceFrame() { return m_stationaryReferenceFrame; }
 
     private:
         // Asynchronously creates resources for new holographic cameras.
@@ -83,9 +87,14 @@ namespace holo_winrt
         // is used to demonstrate world-locked rendering.
         std::unique_ptr<SpinningCubeRenderer>                       m_spinningCubeRenderer;
         std::unique_ptr<SpinningCubeRenderer>                       m_spinningCubeRenderer2;
+        std::unique_ptr<HandMeshRenderer>                           m_handMeshRenderer = nullptr;
 
         // Listens for the Pressed spatial input event.
         std::shared_ptr<SpatialInputHandler>                        m_spatialInputHandler;
+        winrt::Windows::Perception::People::HandMeshObserver        m_currentHandMeshObserver = nullptr;
+        int                                                         m_RightHandId = -1;
+        std::vector<unsigned short>                                 m_currentHandMeshIndices;
+        int                                                         m_currentHandMeshIndicesCount;
 #endif
 
         // Cached pointer to device resources.
@@ -133,5 +142,7 @@ namespace holo_winrt
 
         // Cache whether or not the HolographicFrame.WaitForNextFrameReady() method can be called.
         bool                                                        m_canUseWaitForNextFrameReadyAPI = false;
+
+        std::mutex                                                  m_lockHandFetch;
     };
 }

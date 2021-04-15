@@ -14,6 +14,7 @@
 #include <vector>
 #include <wincodec.h>
 #include <iterator>
+#include <string>
 
 #include <Windows.Graphics.DirectX.Direct3D11.Interop.h>
 

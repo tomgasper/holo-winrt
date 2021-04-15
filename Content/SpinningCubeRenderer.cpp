@@ -8,6 +8,7 @@ using namespace holo_winrt;
 using namespace DirectX;
 using namespace winrt::Windows::Foundation::Numerics;
 using namespace winrt::Windows::UI::Input::Spatial;
+using namespace winrt::Windows::Perception::Spatial;
 
 // Loads vertex and pixel shaders from files and instantiates the cube geometry.
 SpinningCubeRenderer::SpinningCubeRenderer(std::shared_ptr<DX::DeviceResources> const& deviceResources) :
@@ -18,12 +19,12 @@ SpinningCubeRenderer::SpinningCubeRenderer(std::shared_ptr<DX::DeviceResources> 
 
 // This function uses a SpatialPointerPose to position the world-locked hologram
 // two meters in front of the user's heading.
-void SpinningCubeRenderer::PositionHologram(SpatialPointerPose const& pointerPose, const float& offset)
+void SpinningCubeRenderer::PositionHologram(SpatialPointerPose const& pointerPose, const float& offset, SpatialCoordinateSystem const& currentCoordSystem)
 {
-    if (pointerPose != nullptr)
+    if (pointerPose != nullptr && currentCoordSystem != nullptr )
     {
         // Get the gaze direction relative to the given coordinate system.
-        const float3 headPosition = pointerPose.Head().Position() + float3(offset, 0.f,0.f);
+        const float3 headPosition = pointerPose.Head().Position() + float3(offset, 0.f, 0.f);
         const float3 headDirection = pointerPose.Head().ForwardDirection();
 
         // The hologram is positioned two meters along the user's gaze direction.
@@ -44,12 +45,6 @@ void SpinningCubeRenderer::Update(DX::StepTimer const& timer)
     const float& dtime = static_cast<float>(timer.GetElapsedSeconds());
 
     m_position = lerp(m_position, m_targetPosition, dtime * m_lerpRate);
-
-    std::wstringstream s;
-    s << "SpinningCubeRenderer::Update: POS: " << m_position.x << m_position.y << m_position.z << '\ n';
-    std::wstring ws = s.str(); 
-
-    OutputDebugString(ws.c_str());
 
 
     // Rotate the cube.
@@ -355,6 +350,8 @@ std::future<void> SpinningCubeRenderer::CreateDeviceDependentResources()
     indexBufferData.pSysMem = cubeIndices.data();
     indexBufferData.SysMemPitch = 0;
     indexBufferData.SysMemSlicePitch = 0;
+
+
     CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned short) * static_cast<UINT>(cubeIndices.size()), D3D11_BIND_INDEX_BUFFER);
     winrt::check_hresult(
         m_deviceResources->GetD3DDevice()->CreateBuffer(

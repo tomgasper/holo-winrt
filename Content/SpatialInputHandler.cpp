@@ -6,6 +6,8 @@ using namespace holo_winrt;
 
 using namespace std::placeholders;
 using namespace winrt::Windows::Foundation;
+using namespace winrt::Windows::Graphics::Holographic;
+using namespace winrt::Windows::Perception;
 using namespace winrt::Windows::UI::Input::Spatial;
 
 // Creates and initializes a GestureRecognizer that listens to a Person.
@@ -40,9 +42,20 @@ SpatialInteractionSourceState SpatialInputHandler::CheckForInput()
     return sourceState;
 }
 
+Collections::IVectorView< winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState> SpatialInputHandler::CheckForDetectedSources(HolographicFramePrediction prediction)
+{
+    auto sourceStates = m_interactionManager.GetDetectedSourcesAtTimestamp(prediction.Timestamp());
+    return sourceStates;
+}
+
 void SpatialInputHandler::OnSourcePressed(SpatialInteractionManager const& sender, SpatialInteractionSourceEventArgs const& args)
 {
     m_sourceState = args.State();
+
+    if (args.PressKind() == SpatialInteractionPressKind::Select)
+    {
+        OutputDebugString(L"Pressed Select");
+    }
 
     //
     // TODO: In your app or game engine, rewrite this method to queue

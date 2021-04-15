@@ -172,12 +172,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -191,12 +192,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -211,12 +213,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -230,12 +233,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\amd64; $(VCInstallDir)\lib\amd64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -250,12 +254,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\arm; $(VCInstallDir)\lib\arm</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -270,12 +275,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\arm; $(VCInstallDir)\lib\arm</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -290,12 +296,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\arm64; $(VCInstallDir)\lib\arm64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -310,12 +317,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store\arm64; $(VCInstallDir)\lib\arm64</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>kernel32.lib;ole32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
       <AdditionalIncludeDirectories>$(ProjectDir);$(IntermediateOutputPath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj /await %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /await /Zc:twoPhase-</AdditionalOptions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAsManaged>false</CompileAsManaged>
@@ -334,6 +342,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppView.h" />
+    <ClInclude Include="Content\HandMeshRenderer.h" />
     <ClInclude Include="holo_winrtMain.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Common\DirectXHelper.h" />
@@ -346,6 +355,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppView.cpp" />
+    <ClCompile Include="Content\HandMeshRenderer.cpp" />
     <ClCompile Include="holo_winrtMain.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Common\CameraResources.cpp" />

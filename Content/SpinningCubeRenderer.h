@@ -17,7 +17,7 @@ namespace holo_winrt
         void Render();
 
         // Repositions the sample hologram.
-        void PositionHologram(winrt::Windows::UI::Input::Spatial::SpatialPointerPose const& pointerPose, const float& offset);
+        void PositionHologram(winrt::Windows::UI::Input::Spatial::SpatialPointerPose const& pointerPose, const float& offset, winrt::Windows::Perception::Spatial::SpatialCoordinateSystem const& coords);
 
         // Property accessors.
         void SetPosition(winrt::Windows::Foundation::Numerics::float3 const& pos)   { m_targetPosition = pos;  }

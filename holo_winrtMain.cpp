@@ -2,6 +2,8 @@
 #include "holo_winrtMain.h"
 #include "Common/DirectXHelper.h"
 
+#include <sstream>
+
 #include <windows.graphics.directx.direct3d11.interop.h>
 
 using namespace holo_winrt;
@@ -9,10 +11,12 @@ using namespace concurrency;
 using namespace Microsoft::WRL;
 using namespace std::placeholders;
 using namespace winrt::Windows::Foundation::Numerics;
+using namespace winrt::Windows::Foundation::Collections;
 using namespace winrt::Windows::Gaming::Input;
 using namespace winrt::Windows::Graphics::Holographic;
 using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace winrt::Windows::Perception::Spatial;
+using namespace winrt::Windows::Perception;
 using namespace winrt::Windows::UI::Input::Spatial;
 using namespace winrt::Windows::Foundation::Metadata;
 
@@ -63,6 +67,8 @@ void holo_winrtMain::SetHolographicSpace(HolographicSpace const& holographicSpac
     m_spinningCubeRenderer = std::make_unique<SpinningCubeRenderer>(m_deviceResources);
     m_spinningCubeRenderer2 = std::make_unique<SpinningCubeRenderer>(m_deviceResources);
     m_spatialInputHandler = std::make_unique<SpatialInputHandler>();
+
+    m_handMeshRenderer = nullptr;
 #endif
 
     // Respond to camera added events by creating any resources that are specific
@@ -199,10 +205,119 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
         }
         m_pointerPressed = false;
 
+        if (pose != nullptr)
+        {
+            // Try to get current hand pose
+            IVectorView<SpatialInteractionSourceState> detectedSources = m_spatialInputHandler->CheckForDetectedSources(prediction);
+            unsigned int arrSize = detectedSources.Size();
+
+            for (auto s : detectedSources)
+            {
+                // Lets see if we've are dealing with the right hand
+                if (s.Source().Handedness() == SpatialInteractionSourceHandedness(2) )
+                {
+                    People::HandPose myHand = s.TryGetHandPose();
+
+                    if (myHand != nullptr)
+                    {
+                        People::HandJointKind littleFinger = People::HandJointKind(25);
+                        People::JointPose littleFingerPose;
+
+                        int handID = s.Source().Id();
+
+                        // If stored Id for right hand doesnt match newly found id then we must
+                        // create a new thread
+                        if (m_RightHandId != handID)
+                        {
+                            std::thread createObserverThread([this, s, myHand, handID]()
+                                {
+                                    // hold this object as long as source is active
+                                    People::HandMeshObserver const& newHandMeshObserver = s.Source().TryCreateHandMeshObserverAsync().get();
+                                    if (newHandMeshObserver)
+                                    {
+                                        std::lock_guard<std::mutex> guard(m_lockHandFetch);
+
+                                        unsigned indexCount = newHandMeshObserver.TriangleIndexCount();
+                                       std::vector<unsigned short> indices(indexCount);
+
+
+                                        newHandMeshObserver.GetTriangleIndices(indices);
+
+                                        // save indices for later use - as they dont change
+
+                                        // store ref to current hand observer
+                                        m_currentHandMeshObserver = newHandMeshObserver;
+
+                                        // store indices and i's count already as they wont change 
+                                        // m_currentHandMeshIndicesCount = indexCount;
+                                        // m_currentHandMeshIndices = indices;
+
+                                        // get vertices from init as well
+                                        std::vector<People::HandMeshVertex> vertices(m_currentHandMeshObserver.VertexCount());
+                                        auto vertexState = m_currentHandMeshObserver.GetVertexStateForPose(myHand);
+                                        vertexState.GetVertices(vertices);
+
+                                        // create our new hand renderer
+                                        m_handMeshRenderer = std::make_unique<HandMeshRenderer>(m_deviceResources, vertices);
+
+                                        // Set Index data
+                                        m_handMeshRenderer->SetHandIndices(indices);
+
+                                        m_RightHandId = handID;
+                                    }
+                                });
+                            createObserverThread.detach();
+                        }
+                        else
+                        {
+                            // vertex count of fetched hand mesh
+                            uint32_t v_count = m_currentHandMeshObserver.VertexCount();
+
+                            // transfer vertices from hand mesh observer object to vector var
+                            std::vector<People::HandMeshVertex> vertices(v_count);
+                            auto vertexState = m_currentHandMeshObserver.GetVertexStateForPose(myHand);
+                            vertexState.GetVertices(vertices);
+
+                            auto meshTransform = vertexState.CoordinateSystem().TryGetTransformTo(m_stationaryReferenceFrame.CoordinateSystem());
+                            if (meshTransform != nullptr)
+                            {
+                                // Now we have vertecies and indices(saved earlier) that we can use to render the right hand
+                                // Lets update our HandMeshRenderer vertex buffer with newly aquired vertices
+                                // We also need to apply appropriate coord system transform to it
+                                m_handMeshRenderer->SetModelConstantBuffer(meshTransform.Value());
+                                m_handMeshRenderer->SetVertexBufferDataSize(v_count);
+                                m_handMeshRenderer->SetVertexBufferData(vertices);
+
+                                // Lets set our transform to coord system as constant buffer
+
+                            }
+                        }
+                        
+                        bool gotYourJoint = myHand.TryGetJoint(m_stationaryReferenceFrame.CoordinateSystem(), littleFinger, littleFingerPose);
+
+                        if (gotYourJoint == true)
+                        {
+                            quaternion orientation = littleFingerPose.Orientation;
+                            float3 pos = littleFingerPose.Position;
+
+                            std::wstringstream s;
+                            s << L"My Little Finger info"
+                            << "Position: " << pos.x << pos.y << pos.z << '\ n'
+                            << "Orientation: " << orientation.x << orientation.y << orientation.z << '\ n';
+
+                            std::wstring ws = s.str();
+
+                            OutputDebugString(ws.c_str());
+                        }
+                    }
+}
+            }
+        }
+
         // When a Pressed gesture is detected, the sample hologram will be repositioned
         // two meters in front of the user.
-        m_spinningCubeRenderer->PositionHologram(pose, 0.f);
-        m_spinningCubeRenderer2->PositionHologram(pose, 1.f);
+        m_spinningCubeRenderer->PositionHologram(pose, 0.f, m_stationaryReferenceFrame.CoordinateSystem());
+        m_spinningCubeRenderer2->PositionHologram(pose, 1.f, m_stationaryReferenceFrame.CoordinateSystem());
     }
 #endif
 
@@ -217,6 +332,11 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
         //
 
 #ifdef DRAW_SAMPLE_CONTENT
+        if (m_handMeshRenderer != nullptr )
+        {
+                m_handMeshRenderer->Update(m_timer);
+        }
+        
         m_spinningCubeRenderer->Update(m_timer);
         m_spinningCubeRenderer2->Update(m_timer);
 #endif
@@ -346,6 +466,12 @@ bool holo_winrtMain::Render(HolographicFrame const& holographicFrame)
                 // Draw the sample hologram.
                 m_spinningCubeRenderer->Render();
                 m_spinningCubeRenderer2->Render();
+
+                if (m_handMeshRenderer != nullptr)
+                {
+                    m_handMeshRenderer->Render();
+                }
+
                 if (m_canCommitDirect3D11DepthBuffer)
                 {
                     // On versions of the platform that support the CommitDirect3D11DepthBuffer API, we can 

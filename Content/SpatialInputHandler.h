@@ -10,6 +10,8 @@ namespace holo_winrt
         SpatialInputHandler();
         ~SpatialInputHandler();
 
+        winrt::Windows::Foundation::Collections::IVectorView<winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState> CheckForDetectedSources(winrt::Windows::Graphics::Holographic::HolographicFramePrediction prediction);
+
         winrt::Windows::UI::Input::Spatial::SpatialInteractionSourceState CheckForInput();
 
     private:

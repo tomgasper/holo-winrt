@@ -61,6 +61,7 @@
     <ClCompile Include="Content\SpinningCubeRenderer.cpp">
       <Filter>Content</Filter>
     </ClCompile>
+    <ClCompile Include="Content\HandMeshRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -75,6 +76,7 @@
     <ClInclude Include="Content\ShaderStructures.h">
       <Filter>Content</Filter>
     </ClInclude>
+    <ClInclude Include="Content\HandMeshRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\VertexShaderShared.hlsl">
