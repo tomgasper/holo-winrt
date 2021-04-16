@@ -10,9 +10,10 @@ using namespace winrt::Windows::Foundation::Numerics;
 using namespace winrt::Windows::UI::Input::Spatial;
 using namespace winrt::Windows::Perception::Spatial;
 
-HandMeshRenderer::HandMeshRenderer(std::shared_ptr<DX::DeviceResources> const& deviceResources, std::vector<winrt::Windows::Perception::People::HandMeshVertex> initVertices) :
+HandMeshRenderer::HandMeshRenderer(std::shared_ptr<DX::DeviceResources> const& deviceResources, std::vector<winrt::Windows::Perception::People::HandMeshVertex> initVertices, std::vector<unsigned short> initIndices) :
 	m_deviceResources(deviceResources)
 {
+	SetHandIndices(initIndices);
 	CreateDeviceDependentResources(initVertices);
 }
 
@@ -21,7 +22,7 @@ void HandMeshRenderer::SetModelConstantBuffer(winrt::Windows::Foundation::Numeri
 	XMMATRIX matrix;
 	matrix = XMLoadFloat4x4(&input_matrix);
 
-	XMStoreFloat4x4(&m_modelConstantBufferData.model, XMMatrixTranspose(matrix));
+	XMStoreFloat4x4(&m_modelConstantBufferData.model, XMMatrixTranspose(matrix) );
 }
 
 void HandMeshRenderer::TransformToStruct()
@@ -38,20 +39,22 @@ void HandMeshRenderer::TransformToStruct()
 
 	m_vertexBufferData.clear();
 	m_vertexBufferData = new_arr;
+	m_vertexBufferDataSize = new_arr.size();
 }
 
-void HandMeshRenderer::SetHandIndices(std::vector<unsigned short> &indices)
-{
-	// resize std::vector first
-	// m_currentHandIndices.resize(indices.size());
-
-	// copy everything from input array
-	for (int i = 0; i < indices.size(); i++)
-	{
-		m_currentHandIndices.push_back(indices[i]);
-	}
-	// indices.clear();
-}
+//void HandMeshRenderer::SetHandIndices(std::vector<unsigned short> &indices)
+//{
+//	// resize std::vector first
+//	// m_currentHandIndices.resize(indices.size());
+//	m_currentHandIndices.clear();
+//
+//	// copy everything from input array
+//	for (int i = 0; i < indices.size(); i++)
+//	{
+//		m_currentHandIndices.push_back(indices[i]);
+//	}
+//	// indices.clear();
+//}
 
 void HandMeshRenderer::Update(DX::StepTimer const& timer)
 {
@@ -68,9 +71,10 @@ void HandMeshRenderer::Update(DX::StepTimer const& timer)
 		TransformToStruct();
 
 		D3D11_MAPPED_SUBRESOURCE resource;
+		ZeroMemory(&resource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 		context->Map(
 			m_vertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
-		memcpy(resource.pData, &m_vertexBufferData, m_vertexBufferDataSize);
+		memcpy(resource.pData, m_vertexBufferData.data(), sizeof(VertexPositionColor) * static_cast<UINT>(m_vertexBufferDataSize));
 		context->Unmap(m_vertexBuffer.Get(), 0);
 
 	}
@@ -81,6 +85,27 @@ void HandMeshRenderer::Update(DX::StepTimer const& timer)
 		0,
 		nullptr,
 		&m_modelConstantBufferData,
+		0,
+		0
+	);
+
+	const FaceColorBuffer m_faceColorBufferData =
+	{
+		{
+			{ 1.0f,1.0f,1.0f },
+			{ 1.0f,0.0f,0.0f },
+			{ 0.0f,1.0f,0.0f },
+			{ 1.0f,1.0f,0.0f },
+			{ 0.0f,0.0f,1.0f },
+			{ 1.0f,0.0f,1.0f },
+		}
+	};
+
+	context->UpdateSubresource(
+		m_faceColorBuffer.Get(),
+		0,
+		nullptr,
+		&m_faceColorBufferData,
 		0,
 		0
 	);
@@ -127,6 +152,12 @@ void HandMeshRenderer::Render()
 		m_modelConstantBuffer.GetAddressOf()
 	);
 
+	context->PSSetConstantBuffers(
+		0,
+		1,
+		m_faceColorBuffer.GetAddressOf()
+	);
+
 	if (!m_usingVprtShaders)
 	{
 		context->GSSetShader(
@@ -153,7 +184,7 @@ void HandMeshRenderer::Render()
 
 std::future<void> HandMeshRenderer::CreateDeviceDependentResources(std::vector<winrt::Windows::Perception::People::HandMeshVertex> receivedVertices)
 {
-	if (receivedVertices.size() < 1) {
+	if (receivedVertices.size() < 1 || m_currentHandIndices.size() < 1) {
 		return;
 	}
 
@@ -204,6 +235,14 @@ std::future<void> HandMeshRenderer::CreateDeviceDependentResources(std::vector<w
 			&m_modelConstantBuffer
 		));
 
+	const CD3D11_BUFFER_DESC constantBufferDesc2(sizeof(FaceColorBuffer), D3D11_BIND_CONSTANT_BUFFER);
+	winrt::check_hresult(
+		m_deviceResources->GetD3DDevice()->CreateBuffer(
+			&constantBufferDesc2,
+			nullptr,
+			&m_faceColorBuffer
+		));
+
 	// if not using vprtshaders -> use geomtryshader
 	if (!m_usingVprtShaders)
 	{
@@ -228,6 +267,7 @@ std::future<void> HandMeshRenderer::CreateDeviceDependentResources(std::vector<w
 	vertexBufferData.pSysMem = m_vertexBufferData.data();
 	vertexBufferData.SysMemPitch = 0;
 	vertexBufferData.SysMemSlicePitch = 0;
+
 	const CD3D11_BUFFER_DESC vertexBufferDesc(
 		sizeof(VertexPositionColor) * static_cast<UINT>(m_vertexBufferData.size()),
 		D3D11_BIND_VERTEX_BUFFER,
@@ -241,13 +281,14 @@ std::future<void> HandMeshRenderer::CreateDeviceDependentResources(std::vector<w
 			&m_vertexBuffer
 		));
 
+	unsigned int i_count = static_cast<unsigned int>(m_currentHandIndices.size());
 	m_indexCount = static_cast<unsigned int>(m_currentHandIndices.size());
 
 	D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
 	indexBufferData.pSysMem = m_currentHandIndices.data();
 	indexBufferData.SysMemPitch = 0;
 	indexBufferData.SysMemSlicePitch = 0;
-	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned short) * static_cast<UINT>(m_indexCount), D3D11_BIND_INDEX_BUFFER);
+	CD3D11_BUFFER_DESC indexBufferDesc(sizeof(unsigned short) * static_cast<UINT>(i_count), D3D11_BIND_INDEX_BUFFER);
 	winrt::check_hresult(
 		m_deviceResources->GetD3DDevice()->CreateBuffer(
 			&indexBufferDesc,
@@ -269,4 +310,6 @@ void HandMeshRenderer::ReleaseDeviceDependentResources()
 	m_geometryShader.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+	m_modelConstantBuffer.Reset();
+	m_faceColorBuffer.Reset();
 }

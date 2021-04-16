@@ -144,5 +144,6 @@ namespace holo_winrt
         bool                                                        m_canUseWaitForNextFrameReadyAPI = false;
 
         std::mutex                                                  m_lockHandFetch;
+        bool												        m_handThreadRunning = false;
     };
 }

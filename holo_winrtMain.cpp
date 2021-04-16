@@ -192,9 +192,11 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
             }
             gamepadWithButtonState.buttonAWasPressedLastFrame = buttonDownThisUpdate;
         }
-
+        
+        // Check if pointer has been pressed
         SpatialInteractionSourceState pointerState = m_spatialInputHandler->CheckForInput();
         SpatialPointerPose pose = nullptr;
+
         if (pointerState != nullptr)
         {
             pose = pointerState.TryGetPointerPose(m_stationaryReferenceFrame.CoordinateSystem());
@@ -205,16 +207,15 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
         }
         m_pointerPressed = false;
 
-        if (pose != nullptr)
-        {
-            // Try to get current hand pose
-            IVectorView<SpatialInteractionSourceState> detectedSources = m_spatialInputHandler->CheckForDetectedSources(prediction);
-            unsigned int arrSize = detectedSources.Size();
+        IVectorView<SpatialInteractionSourceState> detectedSources = m_spatialInputHandler->CheckForDetectedSources(prediction);
+        unsigned int arrSize = detectedSources.Size();
 
+        if (detectedSources.Size() > 0)
+        {
             for (auto s : detectedSources)
             {
                 // Lets see if we've are dealing with the right hand
-                if (s.Source().Handedness() == SpatialInteractionSourceHandedness(2) )
+                if (s.Source().Handedness() == SpatialInteractionSourceHandedness(2))
                 {
                     People::HandPose myHand = s.TryGetHandPose();
 
@@ -229,17 +230,17 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
                         // create a new thread
                         if (m_RightHandId != handID)
                         {
+                            if (m_handThreadRunning == true) { continue; };
                             std::thread createObserverThread([this, s, myHand, handID]()
                                 {
+                                    m_handThreadRunning = true;
                                     // hold this object as long as source is active
                                     People::HandMeshObserver const& newHandMeshObserver = s.Source().TryCreateHandMeshObserverAsync().get();
                                     if (newHandMeshObserver)
                                     {
                                         std::lock_guard<std::mutex> guard(m_lockHandFetch);
-
-                                        unsigned indexCount = newHandMeshObserver.TriangleIndexCount();
-                                       std::vector<unsigned short> indices(indexCount);
-
+                                        unsigned short indexCount = newHandMeshObserver.TriangleIndexCount();
+                                        std::vector<unsigned short> indices(indexCount);
 
                                         newHandMeshObserver.GetTriangleIndices(indices);
 
@@ -258,42 +259,73 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
                                         vertexState.GetVertices(vertices);
 
                                         // create our new hand renderer
-                                        m_handMeshRenderer = std::make_unique<HandMeshRenderer>(m_deviceResources, vertices);
+                                        if (m_handMeshRenderer != nullptr)
+                                        {
+                                            m_handMeshRenderer.reset();
+                                        }
+                                        
+                                        m_handMeshRenderer = std::make_unique<HandMeshRenderer>(m_deviceResources, vertices, indices);
 
                                         // Set Index data
-                                        m_handMeshRenderer->SetHandIndices(indices);
+                                        // m_handMeshRenderer->SetHandIndices(indices);
 
                                         m_RightHandId = handID;
+
+                                        std::wstringstream s;
+                                        s << "RightHandId: " << m_RightHandId << '\ n';
+                                        std::wstring ws = s.str();
+
+                                        OutputDebugString(ws.c_str());
+
+                                        m_handThreadRunning = false;
                                     }
                                 });
                             createObserverThread.detach();
                         }
                         else
                         {
-                            // vertex count of fetched hand mesh
-                            uint32_t v_count = m_currentHandMeshObserver.VertexCount();
-
-                            // transfer vertices from hand mesh observer object to vector var
-                            std::vector<People::HandMeshVertex> vertices(v_count);
-                            auto vertexState = m_currentHandMeshObserver.GetVertexStateForPose(myHand);
-                            vertexState.GetVertices(vertices);
-
-                            auto meshTransform = vertexState.CoordinateSystem().TryGetTransformTo(m_stationaryReferenceFrame.CoordinateSystem());
-                            if (meshTransform != nullptr)
+                            if (m_currentHandMeshObserver != nullptr)
                             {
-                                // Now we have vertecies and indices(saved earlier) that we can use to render the right hand
-                                // Lets update our HandMeshRenderer vertex buffer with newly aquired vertices
-                                // We also need to apply appropriate coord system transform to it
-                                m_handMeshRenderer->SetModelConstantBuffer(meshTransform.Value());
-                                m_handMeshRenderer->SetVertexBufferDataSize(v_count);
-                                m_handMeshRenderer->SetVertexBufferData(vertices);
 
-                                // Lets set our transform to coord system as constant buffer
+                                People::HandPose curr_myHand = s.TryGetHandPose();
 
+                                if (curr_myHand != nullptr)
+                                {
+                                    std::lock_guard<std::mutex> guard(m_lockHandFetch);
+                                    // vertex count of fetched hand mesh
+                                    uint32_t curr_v_count = m_currentHandMeshObserver.VertexCount();
+
+                                    // transfer vertices from hand mesh observer object to vector var
+                                    std::vector<People::HandMeshVertex> curr_vertices(curr_v_count);
+                                    auto vertexState = m_currentHandMeshObserver.GetVertexStateForPose(curr_myHand);
+                                    vertexState.GetVertices(curr_vertices);
+
+                                    auto meshTransform = vertexState.CoordinateSystem().TryGetTransformTo(m_stationaryReferenceFrame.CoordinateSystem());
+                                    if (meshTransform != nullptr)
+                                    {
+                                        // Now we have verticies and indices(saved earlier) that we can use to render the right hand
+                                        // Lets update our HandMeshRenderer vertex buffer with newly aquired vertices
+                                        // We also need to apply appropriate coord system transform to it
+                                        m_handMeshRenderer->SetModelConstantBuffer(meshTransform.Value());
+                                        m_handMeshRenderer->SetVertexBufferDataSize(curr_v_count);
+                                        m_handMeshRenderer->SetVertexBufferData(curr_vertices);
+
+                                        // Lets set our transform to coord system as constant buffer
+
+                                    }
+                                }    
                             }
                         }
                         
-                        bool gotYourJoint = myHand.TryGetJoint(m_stationaryReferenceFrame.CoordinateSystem(), littleFinger, littleFingerPose);
+        }
+
+        
+
+        if (pose != nullptr)
+        {
+            // Try to get current hand pose
+                        
+                        /*bool gotYourJoint = myHand.TryGetJoint(m_stationaryReferenceFrame.CoordinateSystem(), littleFinger, littleFingerPose);
 
                         if (gotYourJoint == true)
                         {
@@ -308,7 +340,7 @@ HolographicFrame holo_winrtMain::Update(HolographicFrame const& previousFrame)
                             std::wstring ws = s.str();
 
                             OutputDebugString(ws.c_str());
-                        }
+                        }*/
                     }
 }
             }

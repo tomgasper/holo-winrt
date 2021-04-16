@@ -51,6 +51,7 @@ namespace holo_winrt
         // If the current D3D Device supports VPRT, we can avoid using a geometry
         // shader just to set the render target array index.
         bool                                            m_usingVprtShaders = false;
+        
 
         struct FaceColorBuffer
         {
